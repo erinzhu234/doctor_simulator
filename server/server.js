@@ -3,9 +3,12 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import { OpenAI } from 'openai';
+import authRoutes from './auth.js';
+import jwt from 'jsonwebtoken'; 
 
 dotenv.config();
 
+const SECRET = 'cs144project';
 const app = express();
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -33,13 +36,22 @@ app.use(cors({
 }));
 app.use(express.json());
 app.use(cookieParser());
-
-// Test route
-app.get('/api/hello', (req, res) => {
-  res.json({ message: 'Backend is working!' });
-});
+app.use('/api/auth', authRoutes);
 
 app.post('/api/ask', async (req, res) => {
+  const token = req.cookies.token;
+
+  if (!token) return res.status(401).json({ reply: "Unauthorized. Please log in." });
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, SECRET);
+  } catch (err) {
+    return res.status(401).json({ reply: "Invalid or expired token." });
+  }
+
+  const username = decoded.username;
+
   const { history, isNew } = req.body;
 
   // Get the last doctor message
@@ -118,18 +130,6 @@ app.post('/api/ask', async (req, res) => {
     res.status(500).json({ reply: "Sorry, something went wrong." });
   }
 });
-
-
-function simulatePatientReply(message) {
-  const genericReplies = [
-    "Hmm... I’ve been having a headache for days.",
-    "My stomach really hurts when I eat.",
-    "I feel dizzy and my muscles ache.",
-    "I’m feeling very tired even after sleeping a lot.",
-    "My throat is sore and I have a mild fever.",
-  ];
-  return genericReplies[Math.floor(Math.random() * genericReplies.length)];
-}
 
 
 const PORT = process.env.PORT || 3001;

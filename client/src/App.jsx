@@ -5,6 +5,11 @@ export default function App() {
   const [input, setInput] = useState("");
   const [diagnosisComplete, setDiagnosisComplete] = useState(false);
   const [resetFlag, setResetFlag] = useState(false);
+  
+  const [user, setUser] = useState(null);
+  const [showCookieNotice, setShowCookieNotice] = useState(false);
+
+  const [inputUsername, setInputUsername] = useState('');
 
   const chatRef = useRef(null);
 
@@ -62,10 +67,22 @@ export default function App() {
   }, [messages]);
 
   useEffect(() => {
-    if (resetFlag || messages.length === 0) {
+    if ((resetFlag || messages.length === 0) && user) {
       startNewPatient().then(() => setResetFlag(false));
     }
-  }, [resetFlag, messages.length]);
+  }, [resetFlag, messages.length, user]);
+
+  // Check login status
+  useEffect(() => {
+    fetch('/api/auth/me', {
+      credentials: 'include',
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.user) setUser({username: data.user});
+        else setShowCookieNotice(true);
+      });
+  }, []);
 
   const handleReset = () => {
     setMessages([]);
@@ -78,7 +95,23 @@ export default function App() {
       {/* Header */}
       <header className="p-4 text-lg font-bold border-b border-gray-700 bg-gray-800">
         <span>🩺 Doctor Simulator</span>
-         <button
+        {user && (
+          <button
+            onClick={async () => {
+              await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include',
+              });
+              setUser(null);
+              setShowCookieNotice(true);
+            }}
+            className="absolute top-2 right-25 text-xl hover:scale-110 transition"
+            title="Logout"
+          >
+            Log Out
+          </button>
+        )}
+        <button
           onClick={handleReset}
           className="absolute top-2 right-4 text-xl hover:scale-110 transition"
           title="Reset conversation"
@@ -127,6 +160,7 @@ export default function App() {
           <button
             className="bg-blue-600 px-4 py-2 rounded hover:bg-blue-700"
             onClick={sendMessage}
+            disabled={!user}
           >
             Send
           </button>
@@ -151,6 +185,39 @@ export default function App() {
             </div>
           )}
       </footer>
+
+      {showCookieNotice && (
+        <div className="fixed bottom-0 left-0 right-0 bg-gray-800 p-4 text-center text-sm flex flex-col items-center gap-2">
+          <span>This app uses cookies for simulation.</span>
+          <input
+            className="p-2 rounded bg-gray-700 text-white"
+            placeholder="Enter Doctor ID"
+            value={inputUsername}
+            onChange={(e) => setInputUsername(e.target.value)}
+          />
+          <button
+            onClick={async () => {
+              const res = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ username: inputUsername }),
+              });
+              const data = await res.json();
+
+              if(data.success) {
+                setShowCookieNotice(false);
+                window.location.reload();
+              } else {
+                alert("Login failed. Try again. ")
+              }
+            }}
+            className="bg-green-600 px-3 py-1 rounded hover:bg-green-500"
+          >
+            Accept & Login
+          </button>
+        </div>
+      )}
     </div>
   );
 }
