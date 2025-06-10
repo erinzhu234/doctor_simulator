@@ -16,6 +16,11 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Authenticate to Google Cloud
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+      
       - name: Install dependencies
         run: npm install
 
@@ -34,9 +39,14 @@ jobs:
       - name: Copy Frontend Build to Server Dir
         run: cp -r client/dist server/dist
 
+      - name: Gcloud login
+        run: gcloud activate-service-account --key-file=./cs144-25s-erinzhu234-7032c82ecb2a.json
+      
+      - name: Set Gcloud Project
+        run: gcloud set project cs144-25s-erinzhu234
+
       - name: Deploy to Google App Engine
         uses: google-github-actions/deploy-appengine@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          credentials: ${{ secrets.GCP_SA_KEY }}
           app_yaml_path: './app.yaml'
