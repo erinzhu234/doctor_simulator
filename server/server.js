@@ -5,8 +5,20 @@ import dotenv from 'dotenv';
 import { OpenAI } from 'openai';
 import authRoutes from './auth.js';
 import jwt from 'jsonwebtoken'; 
+import mongoose from 'mongoose';
+import Conversation from './models/Conversation.js';
+import { createClient } from 'redis';
 
 dotenv.config();
+
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+}).then(() => console.log("MongoDB connected"))
+  .catch((err) => console.error("MongoDB error:", err));
+
+const redisClient = createClient();
+redisClient.connect().catch(console.error);
 
 const SECRET = 'cs144project';
 const app = express();
@@ -37,6 +49,19 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use('/api/auth', authRoutes);
+
+app.get('/api/conversations', async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const decoded = jwt.verify(token, SECRET);
+    const conversations = await Conversation.find({ user: decoded.username }).sort({ createdAt: -1 });
+    res.json(conversations);
+  } catch {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
 
 app.post('/api/ask', async (req, res) => {
   const token = req.cookies.token;
@@ -104,6 +129,13 @@ app.post('/api/ask', async (req, res) => {
 
       reply = check.choices[0].message.content;
       correctDiagnosis = reply.toLowerCase().includes("yes") || reply.toLowerCase().includes("correct");
+      if (correctDiagnosis) {
+        await Conversation.create({
+          user: username,
+          messages: history,
+          correctDiagnosis: true,
+        });
+      }
     } else {
       // Normal patient simulation
       const completion = await openai.chat.completions.create({
@@ -125,12 +157,46 @@ app.post('/api/ask', async (req, res) => {
     }
 
     res.json({ reply, correctDiagnosis });
+
+    const aiReply = { from: "patient", text: reply };
+    const fullHistory = [...history, aiReply];
+
+    await redisClient.set(`chat:${username}`, JSON.stringify({
+      history: fullHistory,
+      correctDiagnosis
+    }), { EX: 3600 }); // Expires in 1 hour
   } catch (err) {
     console.error("OpenAI error:", err.message);
     res.status(500).json({ reply: "Sorry, something went wrong." });
   }
 });
 
+app.get('/api/history', async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: "Unauthorized" });
+
+  try {
+    const decoded = jwt.verify(token, SECRET);
+    const conversations = await Conversation.find({ user: decoded.username }).sort({ timestamp: -1 }).limit(10);
+    res.json(conversations);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to retrieve history" });
+  }
+});
+
+app.get('/api/conversation', async (req, res) => {
+  const token = req.cookies.token;
+  if (!token) return res.status(401).json({ error: 'Unauthorized' });
+
+  try {
+    const { username } = jwt.verify(token, SECRET);
+    const cached = await redisClient.get(`chat:${username}`);
+    if (cached) return res.json(JSON.parse(cached));
+    return res.json(null);
+  } catch {
+    return res.status(401).json({ error: 'Invalid token' });
+  }
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {

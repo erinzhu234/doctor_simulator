@@ -13,7 +13,7 @@ router.post('/login', (req, res) => {
     const token = jwt.sign({ username }, SECRET, { expiresIn: '1h' });
     res.cookie('token', token, {
       httpOnly: true,
-      secure: false, // set to true in production with HTTPS
+      secure: true, // set to true in production with HTTPS
       sameSite: 'Lax',
     });
     return res.json({ success: true });
