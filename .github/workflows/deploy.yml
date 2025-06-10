@@ -11,7 +11,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Node
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
@@ -19,11 +19,24 @@ jobs:
       - name: Install dependencies
         run: npm install
 
+      - name: Install Frontend dependencies
+        run: npm install
+        working-directory: ./client/
+
+      - name: Install Backend dependencies
+        run: npm install
+        working-directory: ./server/
+
       - name: Build project
         run: npm run build
+        working-directory: ./client/
+
+      - name: Copy Frontend Build to Server Dir
+        run: cp -r client/dist server/dist
 
       - name: Deploy to Google App Engine
         uses: google-github-actions/deploy-appengine@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           credentials: ${{ secrets.GCP_SA_KEY }}
+          app_yaml_path: './app.yaml'
