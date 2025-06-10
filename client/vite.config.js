@@ -9,7 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'robots.txt', 'icons/icon-192.png', 'icons/icon-512.png', 'offline.html'],
+      includeAssets: ['icons/icon-192.png', 'icons/icon-512.png', 'offline.html'],
       manifest: {
         name: 'Doctor Simulator',
         short_name: 'DocSim',

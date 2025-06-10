@@ -1,5 +1,5 @@
 runtime: nodejs20
-instance_class: F1
+instance_class: F4
 env_variables:
   NODE_ENV: production
   OPENAI_API_KEY: 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

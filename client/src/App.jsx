@@ -140,7 +140,11 @@ export default function App() {
   return (
     <div className="h-screen w-screen flex flex-col bg-gray-900 text-white font-sans">
       {isOffline && (
-        <div className="bg-yellow-600 text-white text-sm text-center py-2">
+        <div
+          ref={offlineBannerRef} // Attach ref to measure height
+          className="bg-yellow-600 text-white text-sm text-center py-2 z-1000" // Added z-index to ensure visibility
+          style={{ position: 'sticky', top: 0 }} // Make it sticky, though flexbox handles this too
+        >
           ⚠️ You're offline. Some features may not work.
         </div>
       )}

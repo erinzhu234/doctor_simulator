@@ -7,6 +7,7 @@ const SECRET = 'cs144project';
 // Simple hardcoded user for demo
 const DEMO_USER = { username: 'doctor' };
 
+console.log("Attempting to register /login route: /login")
 router.post('/login', (req, res) => {
   const { username } = req.body;
   if (username === DEMO_USER.username) {
@@ -21,11 +22,13 @@ router.post('/login', (req, res) => {
   res.status(401).json({ success: false, message: 'Invalid credentials' });
 });
 
+console.log("Attempting to register /logout")
 router.post('/logout', (req, res) => {
   res.clearCookie('token');
   res.json({ success: true });
 });
 
+console.log("Attempting to register /me")
 router.get('/me', (req, res) => {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ user: null });
