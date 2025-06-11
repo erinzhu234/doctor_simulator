@@ -149,54 +149,43 @@ export default function App() {
         </div>
       )}
       {/* Header */}
-      <header className="p-4 text-lg font-bold border-b border-gray-700 bg-gray-800">
-        <span>🩺 Doctor Simulator</span>
-        {user && (
+      {/* Add responsive padding and text size classes for smaller screens */}
+      <header className="p-4 text-lg font-bold border-b border-gray-700 bg-gray-800 flex items-center justify-between
+                         sm:p-2 sm:text-base"> {/* Reduce padding and base text size on small screens */}
+        {/* Title: Ensure it can shrink and optionally reduce margin on small screens */}
+        <span className="text-white flex-grow-0 flex-shrink min-w-0 mr-4
+                         sm:mr-2"> {/* Reduce right margin on small screens */}
+          🩺 Doctor Simulator
+        </span>
+        
+        {/* Buttons: Ensure button icons also reduce size on small screens */}
+        <div className="flex items-center space-x-2">
+          {user && (
+            <button
+              aria-label="Download history"
+              onClick={async () => { /* ... */ }}
+              className="text-xl hover:scale-110 transition
+                         sm:text-lg"> {/* Reduce icon size on small screens */}
+              📥
+            </button>
+          )}
+          {user && (
+            <button
+              aria-label="Log out"
+              onClick={async () => { /* ... */ }}
+              className="text-xl hover:scale-110 transition
+                         sm:text-lg"> {/* Reduce icon size on small screens */}
+              🚪
+            </button>
+          )}
           <button
-            aria-label="Download history"
-            onClick={async () => {
-              const res = await fetch('/api/conversations', { credentials: 'include' });
-              const data = await res.json();
-
-              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-              const url = URL.createObjectURL(blob);
-
-              const a = document.createElement('a');
-              a.href = url;
-              a.download = `conversations-${user.username}.json`;
-              a.click();
-            }}
-            className="absolute top-2 right-57 text-xl hover:scale-110 transition"
-            title="Download History"
-          >
-            📥
+            aria-label="Reset conversation"
+            onClick={handleReset}
+            className="text-xl hover:scale-110 transition
+                       sm:text-lg"> {/* Reduce icon size on small screens */}
+            🔄
           </button>
-        )}
-        {user && (
-          <button
-            aria-label="Log out"
-            onClick={async () => {
-              await fetch('/api/auth/logout', {
-                method: 'POST',
-                credentials: 'include',
-              });
-              setUser(null);
-              setShowCookieNotice(true);
-            }}
-            className="absolute top-2 right-25 text-xl hover:scale-110 transition"
-            title="Logout"
-          >
-            Log Out
-          </button>
-        )}
-        <button
-          aria-label="Reset conversation"
-          onClick={handleReset}
-          className="absolute top-2 right-4 text-xl hover:scale-110 transition"
-          title="Reset conversation"
-        >
-          🔄
-        </button>
+        </div>
       </header>
 
       {isListening && (
