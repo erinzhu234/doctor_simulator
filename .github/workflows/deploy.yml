@@ -43,4 +43,6 @@ jobs:
         uses: google-github-actions/deploy-appengine@v1
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          app_yaml_path: './app.yaml'
+          env_vars: |
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            MONGO_URI=${{ secrets.MONGO_URI }}
