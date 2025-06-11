@@ -143,7 +143,7 @@ export default function App() {
         <div
           // ref={offlineBannerRef} // Attach ref to measure height
           className="bg-yellow-600 text-white text-sm text-center py-2 z-1000" // Added z-index to ensure visibility
-          style={{ position: 'sticky', top: 0 }} // Make it sticky, though flexbox handles this too
+          // style={{ position: 'sticky', top: 0 }} // Make it sticky, though flexbox handles this too
         >
           ⚠️ You're offline. Some features may not work.
         </div>
@@ -163,18 +163,40 @@ export default function App() {
           {user && (
             <button
               aria-label="Download history"
-              onClick={async () => { /* ... */ }}
+              onClick={async () => {
+                const res = await fetch('/api/conversations', { credentials: 'include' });
+                const data = await res.json();
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `conversations-${user.username}.json`;
+                a.click();
+              }}
               className="text-xl hover:scale-110 transition
-                         sm:text-lg"> {/* Reduce icon size on small screens */}
+                         sm:text-lg"
+              title="Download History"           
+              > 
               📥
             </button>
           )}
           {user && (
             <button
               aria-label="Log out"
-              onClick={async () => { /* ... */ }}
+              onClick={async () => {
+                await fetch('/api/auth/logout', {
+                  method: 'POST',
+                  credentials: 'include',
+                });
+                setUser(null);
+                setShowCookieNotice(true);
+              }}
               className="text-xl hover:scale-110 transition
-                         sm:text-lg"> {/* Reduce icon size on small screens */}
+                         sm:text-lg"
+              title="Logout"
+              > 
               🚪
             </button>
           )}
