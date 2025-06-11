@@ -37,7 +37,7 @@ jobs:
         working-directory: ./client/
 
       - name: Copy Frontend Build to Server Dir
-        run: cp -r client/dist server/dist
+        run: cp -r client/dist/. server/dist
 
       - name: Deploy to Google App Engine
         uses: google-github-actions/deploy-appengine@v1
