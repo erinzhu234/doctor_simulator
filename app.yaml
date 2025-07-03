@@ -1,4 +1,6 @@
 runtime: nodejs20
 instance_class: F4
+automatic_scaling:
+  max_instances: 5  # adjust as needed
 env_variables:
   NODE_ENV: production
