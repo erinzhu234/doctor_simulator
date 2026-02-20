@@ -7,7 +7,7 @@ This application lets the user play the role as a doctor to give diagnosis to vi
 ## Live Application URL
 
 You can access the deployed application at:
-**[[https://cs144-25s-erinzhu234.us-west2.r.appspot.com/](https://cs144-25s-erinzhu234.wl.r.appspot.com/)]**
+**[https://cs144-25s-erinzhu234.wl.r.appspot.com/](https://cs144-25s-erinzhu234.wl.r.appspot.com/)]**
 
 ## System Architecture
 
