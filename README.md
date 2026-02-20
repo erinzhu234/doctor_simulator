@@ -8,6 +8,7 @@ This application lets the user play the role as a doctor to give diagnosis to vi
 
 You can access the deployed application at:
 **[https://cs144-25s-erinzhu234.wl.r.appspot.com/](https://cs144-25s-erinzhu234.wl.r.appspot.com/)]**
+with passcode "doctor".
 
 ## System Architecture
 
